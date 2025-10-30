@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style>
+    body {
+      margin: unset;
+    }
+    .score-nextboard {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .gameplay {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+  </style>
+  <style>
+    body {
+      font-family: "Arial", sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: dimgray;
+    }
+
+    #game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    canvas {
+      border: 2px solid #333;
+    }
+
+    #next-block-canvas {
+      margin-top: 20px;
+    }
+
+    #controls {
+      display: flex;
+      margin-top: 20px;
+    }
+
+    button {
+      margin: 0 10px;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #4caf50;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      outline: none;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    #score-board {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+
+    #game-over {
+      display: none;
+      margin-top: 20px;
+      font-size: 24px;
+      color: #ff0000;
+    }
+  </style>
+  <body>
+    <div id="game-container">
+      <h1>Sand Tetris</h1>
+      <div class="gameplay">
+        <canvas
+          id="canvads"
+          height="500"
+          width="300"
+          style="background-color: #000"
+        ></canvas>
+        <div class="score-nextboard">
+          <button id="restart-btn" onclick="window.location.reload()">
+            Restart
+          </button>
+          <div id="score-board">Score: 0</div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="./tetris.js"></script>
+  <script src="./main.js"></script>
+</html>
