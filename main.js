@@ -4,8 +4,6 @@ import { sdk } from '@farcaster/miniapp-sdk'
 // expose for other files if they need it
 window.sdk = sdk
 
-// tag the body so CSS can switch to mini layout
-document.body.classList.add('fc-mini')
 
 // mount the game
 const mount = document.getElementById('game-root') || document.body

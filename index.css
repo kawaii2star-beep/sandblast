@@ -759,3 +759,28 @@ label:has(+ .form3){
   border: none !important;
   box-shadow: none !important;
 }
+/* remove dotted page background */
+body {
+  background: #06141a !important;
+  background-image: none !important;
+  background-size: auto !important;
+  background-position: initial !important;
+}
+
+/* if you only want this change in mini-app mode */
+body.fc-mini {
+  background: #06141a !important;
+  background-image: none !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
