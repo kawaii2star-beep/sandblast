@@ -132,8 +132,7 @@ window.addEventListener('keydown', (event) => {
     //START
     start(){
 
-        this.shell = document.querySelector('.mini-app');
-
+        
         //MAIN
         const gameContainer = document.createElement('div');
         gameContainer.classList.add('game-container');
@@ -193,20 +192,15 @@ startScreen.appendChild(homeTitle)
         textStart.classList.add('textStart')
         ssButtonStart.appendChild(textStart)
 
-
-
-
-ssButtonStart.onclick = () => {
-  this.active = true
-  startScreen.style.display = 'none'
-  divLine.style.display = 'flex'
-  this.shell?.classList.remove('is-home')
-  this.shell?.classList.add('is-playing')
-  try { this.music.play() } catch {}
-  this.dodajFiguru()
-  this.swapGrids()
-}
-
+        ssButtonStart.onclick = (ev) =>{
+            this.active = true;
+            startScreen.style.display='none'
+            divLine.style.display='flex'
+            document.querySelector('.form-wrapper').classList.add('active');
+            this.music.play();
+            this.dodajFiguru()
+            this.swapGrids()
+        }
 
         //ABOUT BUTTON
         const ssDivAbout = document.createElement('div')
@@ -229,6 +223,7 @@ ssButtonStart.onclick = () => {
         textPause.classList.add('text-pause')
         textPause.innerHTML = "PAUSE"
         divPause.appendChild(textPause)
+
 
         //END SCREEN
         const endScreen = document.createElement('div')
@@ -261,26 +256,16 @@ ssButtonStart.onclick = () => {
         esTextReplay.classList.add('es-text-replay')
         esReplay.appendChild(esTextReplay)
 
-esReplay.onclick = () => {
-  endScreen.style.display = 'none'
-  divLine.style.display = 'flex'
-  this.resetGame()
-  this.active = true
-  this.shell?.classList.add('is-playing')
-  try { this.music.play() } catch {}
-  this.dodajFiguru()
-  this.swapGrids()
-}
-
-
-
-if (this.hud) this.hud.style.display = 'flex';
-if (this.pauseEl) this.pauseEl.style.display = 'block';
-
-this.resetGame();
-this.active = true;
-this.dodajFiguru();
-this.swapGrids();
+        esReplay.onclick = (ev) =>{
+            // popStartScreen.style.display='flex'
+            endScreen.style.display='none'
+            divLine.style.display = 'flex'
+            this.resetGame()
+            
+            this.active = true;
+            this.dodajFiguru()
+            this.swapGrids()
+        }
 
       // OPTIONS
 
@@ -311,8 +296,7 @@ gameDisplay.appendChild(controlsDiv);
 const pause = document.createElement('div');
 pause.classList.add('settings-pause');
 controlsDiv.appendChild(pause);
-
-this.pauseEl = pause;  
+pause.on = '1';
 
 pause.onclick = () => {
   if (this.active) {
@@ -335,16 +319,12 @@ pause.onclick = () => {
 
 
         this.createForm(gameBody)
-        if (this.hud) this.hud.style.display = 'none';     // hide HUD on home
-if (this.pauseEl) this.pauseEl.style.display = 'none'; // hide pause on home
-
         this.updateScore();
         this.updateBlocks();
         this.updateLevel();
         this.createCanvasNext()
         this.createCanvas(gameDisplay)
         this.enableGestures(this.canvas);
-        this.canvas.style.touchAction = 'none'
         this.draw()
         this.animate()
 
@@ -408,10 +388,11 @@ if (this.pauseEl) this.pauseEl.style.display = 'none'; // hide pause on home
 
     //CREATES FORM
     createForm(host){
+
         let formWrapper = document.createElement('div')
         formWrapper.classList.add('form-wrapper')
         host.appendChild(formWrapper)
-this.hud = formWrapper; 
+
         //Next
         let fNextText = document.createElement('label')
         fNextText.innerHTML = "NEXT"
