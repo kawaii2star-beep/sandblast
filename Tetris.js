@@ -30,15 +30,36 @@ function maybeShowAddToMiniAppsPrompt() {
       overlay.remove();
     };
 
-    box.querySelector('.miniapp-prompt-add').onclick = async () => {
-      try {
-        await window.sdk.actions.addToMiniApps();
-      } catch (e) {
-        console.warn('addToMiniApps unavailable or failed', e);
-      } finally {
-        close();
-      }
-    };
+box.querySelector('.miniapp-prompt-add').onclick = async () => {
+  const done = () => { localStorage.setItem('st_add_prompt_v1', 'done'); overlay.remove(); };
+
+  try {
+    if (!window.sdk?.actions) throw new Error('no-sdk');
+
+    // optional precheck if client exposes it
+    if (typeof window.sdk.actions.canAddToMiniApps === 'function') {
+      const can = await window.sdk.actions.canAddToMiniApps();
+      if (!can) return done();         // already added or not supported
+    }
+
+    // try known verbs in order
+    if (typeof window.sdk.actions.addToMiniApps === 'function') {
+      await window.sdk.actions.addToMiniApps();
+    } else if (typeof window.sdk.actions.install === 'function') {
+      await window.sdk.actions.install();
+    } else if (typeof window.sdk.actions.addToFavorites === 'function') {
+      await window.sdk.actions.addToFavorites();
+    } else {
+      throw new Error('unsupported');
+    }
+  } catch (e) {
+    console.warn('Add to Mini Apps not available', e);
+    alert('Open this game inside Warpcast to add it to Mini Apps');
+  } finally {
+    done();
+  }
+};
+
 
     box.querySelector('.miniapp-prompt-later').onclick = close;
 
