@@ -22,18 +22,34 @@ function showAddPrompt() {
 
   const close = () => overlay.remove();
 
-  box.querySelector(".miniapp-prompt-add").onclick = async () => {
-    try {
-      await sdk.actions.ready();                // <-- required
-      await sdk.actions.addToMiniApps();        // <-- same call Candy Crush uses
-      localStorage.setItem("st_add_prompt_v1", "done");
-      close();
-    } catch (e) {
-      console.warn("Add failed:", e);
-      // silently close (no alert)
-      close();
-    }
-  };
+box.querySelector(".miniapp-prompt-add").onclick = async () => {
+  try {
+    // prefer the injected SDK in Warpcast, fall back to import
+    const a = (window.sdk && window.sdk.actions) || sdk.actions;
+    if (!a) throw new Error("no actions");
+
+    await a.ready();
+
+    // normalize across versions
+    const fn =
+      a.addToMiniApps ||
+      a.openAddToMiniApps ||
+      a.addToFavorites; // legacy
+
+    if (!fn) throw new Error("no add sheet available");
+
+    await fn.call(a);
+
+    localStorage.setItem("st_add_prompt_v1", "done");
+  } catch (e) {
+    console.warn("Add failed:", e);
+    // no alert, just keep the prompt so user can retry in Warpcast
+  } finally {
+    // close either way, same as Candy Crush UX
+    document.querySelector(".miniapp-prompt-overlay")?.remove();
+  }
+};
+
 
   box.querySelector(".miniapp-prompt-later").onclick = close;
   overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
