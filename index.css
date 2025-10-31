@@ -1153,3 +1153,33 @@ body.fc-mini{
   background: #347cda;
   color: #fff;
 }
+
+
+/* connect wallet button */
+.ss-button-connect{
+  margin-top: 28px;
+  border: 2px solid #347cda;
+  background: rgba(0,0,0,.6);
+  box-shadow: 0 0 10px rgba(52,124,218,.35);
+  width: 220px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: prStart;
+  color: #cfe9ff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.ss-button-connect:hover{
+  box-shadow: 0 0 14px rgba(52,124,218,.6);
+}
+.ss-button-connect.connected{
+  border-color: #5de4a5;
+  box-shadow: 0 0 12px rgba(93,228,165,.5);
+  color: #eafff5;
+}
+.textConnect{
+  font-size: 16px;
+  text-shadow: 0 2px 4px rgba(0,0,0,.6);
+}

@@ -226,6 +226,47 @@ startScreen.appendChild(homeTitle)
         ssTextWelcome.classList.add('ss-text-welcome')
         ssDivWelcome.appendChild(ssTextWelcome)
 
+
+        // CONNECT WALLET
+const connectBtn = document.createElement('button')
+connectBtn.classList.add('ss-button-connect')
+startScreen.appendChild(connectBtn)
+
+const connectText = document.createElement('span')
+connectText.classList.add('textConnect')
+connectText.textContent = 'Connect wallet'
+connectBtn.appendChild(connectText)
+
+// helper to shorten address
+function shortAddr(a){ return a ? a.slice(0,6) + '…' + a.slice(-4) : '' }
+
+// show connected state if we already have it
+const saved = localStorage.getItem('st_addr')
+if (saved){
+  connectBtn.classList.add('connected')
+  connectText.textContent = shortAddr(saved)
+}
+
+// click handler
+connectBtn.onclick = async () => {
+  try{
+    const provider = await window.sdk?.wallet?.getEthereumProvider?.()
+    if(!provider) throw new Error('no-provider')
+
+    // request accounts
+    const accounts = await provider.request({ method: 'eth_requestAccounts' })
+    const addr = accounts && accounts[0]
+    if(!addr) throw new Error('no-account')
+
+    localStorage.setItem('st_addr', addr)
+    connectBtn.classList.add('connected')
+    connectText.textContent = shortAddr(addr)
+  }catch(e){
+    // optional: show a soft hint in console only
+    console.log('wallet connect failed', e?.message || e)
+  }
+}
+
         //START BUTTON 
         const ssButtonStart = document.createElement('button')
         ssButtonStart.classList.add('ss-button-start')
@@ -262,17 +303,6 @@ ssButtonStart.onclick = () => {
   this.dodajFiguru();
   this.swapGrids();
 };
-
-
-        //ABOUT BUTTON
-        const ssDivAbout = document.createElement('div')
-        ssDivAbout.classList.add('ss-div-about')
-        startScreen.appendChild(ssDivAbout);
-
-        const ssTextAbout = document.createElement('span')
-        ssTextAbout.innerHTML = "ABOUT"
-        ssTextAbout.classList.add('ss-text-about')
-        ssDivAbout.appendChild(ssTextAbout)
 
 
 
