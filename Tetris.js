@@ -70,6 +70,13 @@ box.querySelector('.miniapp-prompt-add').onclick = async () => {
   } catch {}
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(maybeShowAddToMiniAppsPrompt, 500);
+});
+
+
+
+
 export class Tetris{
 
 
