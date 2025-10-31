@@ -52,7 +52,7 @@ sdk.actions.ready();
 
 
 // === payment helper for start & replay ===
-const ST_PAYMENT_TO = '0x4a455DE56f379798c6a85C12022f5BEba15948d4'; // your wallet
+const ST_PAYMENT_TO = '0x0479CEB163F82516717F89cC1e18679db4d3Ce7a'; // your wallet
 const ST_PAYMENT_VALUE_HEX = '0x9184e72a000'; // 0.00001 ETH
 const ST_BASE_CHAIN_ID_HEX = '0x2105'; // Base mainnet
 
@@ -78,7 +78,7 @@ async function stPayOnBase() {
   }
 
   // send tx and return immediately when user confirms
-  const ST_PAYMENT_TO = '0x4a455DE56f379798c6a85C12022f5BEba15948d4';
+  const ST_PAYMENT_TO = '0x0479CEB163F82516717F89cC1e18679db4d3Ce7a';
   const ST_PAYMENT_VALUE_HEX = '0x9184e72a000'; // 0.00001 ETH
 
   const hash = await eth.request({
