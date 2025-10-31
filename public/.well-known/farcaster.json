@@ -17,9 +17,7 @@
   "heroImageUrl": "https://sandblast-smoky.vercel.app/og.png",
   "splashImageUrl": "https://sandblast-smoky.vercel.app/og.png",
   "splashBackgroundColor": "#000000",
-  "screenshotUrls": [
-    "https://sandblast-smoky.vercel.app/screenshot-portrait.png"
-  ],
+  "screenshotUrls": ["https://sandblast-smoky.vercel.app/screenshot-portrait.png"],
   "ogTitle": "Sand Tetris",
   "ogDescription": "Play Sand Tetris on Base through Farcaster Mini Apps.",
   "ogImageUrl": "https://sandblast-smoky.vercel.app/og.png"
@@ -30,3 +28,6 @@
     "ownerAddress": "0xD1953dc7195a205B562e393Fa646Bab01"
   }
 }
+
+
+
