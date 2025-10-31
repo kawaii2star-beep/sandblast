@@ -62,10 +62,16 @@ async function stPayOnBase() {
 
   try { await window.sdk.actions.ready(); } catch {}
 
-  // request account
-  try { await eth.request({ method: 'eth_requestAccounts' }); } catch (e) {
-    throw new Error('wallet-denied');
-  }
+// request account and keep address
+let addr;
+try {
+  const accs = await eth.request({ method: 'eth_requestAccounts' });
+  addr = accs?.[0];
+  if (!addr) throw new Error('no-account');
+} catch (e) {
+  throw new Error('wallet-denied');
+}
+
 
   // ensure Base
   let chainId = await eth.request({ method: 'eth_chainId' });
@@ -81,11 +87,15 @@ async function stPayOnBase() {
     }
   }
 
-  // send tx
-  const hash = await eth.request({
-    method: 'eth_sendTransaction',
-    params: [{ to: ST_PAYMENT_TO, value: ST_PAYMENT_VALUE_HEX }],
-  });
+// send tx with from
+const hash = await eth.request({
+  method: 'eth_sendTransaction',
+  params: [{
+    from: addr,
+    to: ST_PAYMENT_TO,
+    value: ST_PAYMENT_VALUE_HEX
+  }],
+});
 
   // wait for confirmation
   const wait = (ms) => new Promise(r => setTimeout(r, ms));
