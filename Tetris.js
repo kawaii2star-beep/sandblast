@@ -327,6 +327,45 @@ connectBtn.onclick = async () => {
   }
 }
 
+
+// === shared clean boot ===
+const bootNewRun = () => {
+  // hide overlays
+  startScreen.style.display = 'none';
+  endScreen.style.display   = 'none';
+  divLine.style.display     = 'flex';
+
+  // HUD on
+  document.querySelector('.form-wrapper')?.classList.add('active');
+
+  // full reset
+  this.resetGame();
+  this.destroyArray.length = 0;        // <— important: clear any pending destroy batch
+  this.play        = true;
+  this.active      = true;
+  this.fell        = false;
+  this.rotate      = false;
+  this.moveLeft    = false;
+  this.moveRight   = false;
+  this.pronadjen   = false;
+  this.chargeCount = 0;
+
+  // music + pause icon
+  try { this.music.currentTime = 0; this.music.play().catch(()=>{}); } catch {}
+  if (this.pauseEl) {
+    this.pauseEl.on = '1';
+    this.pauseEl.style.backgroundImage = 'url(./images/pause.png)';
+    textPause.style.display = 'none';
+  }
+
+  // spawn and render immediately
+  this.dodajFiguru();
+  this.swapGrids();
+  this.ctx.clearRect(0, 0, this.width, this.height);
+  this.draw();
+};
+
+
         //START BUTTON 
         const ssButtonStart = document.createElement('button')
         ssButtonStart.classList.add('ss-button-start')
@@ -337,7 +376,7 @@ connectBtn.onclick = async () => {
         textStart.classList.add('textStart')
         ssButtonStart.appendChild(textStart)
 
-ssButtonStart.onclick = async (ev) => {
+ssButtonStart.onclick = async () => {
   try {
     const provider = await window.sdk?.wallet?.getEthereumProvider?.();
     if (!provider) throw new Error('no-provider');
@@ -346,30 +385,17 @@ ssButtonStart.onclick = async (ev) => {
     const addr = accounts && accounts[0];
     if (!addr) throw new Error('no-account');
 
-    // build the tx
-    const tx = {
-      from: addr,
-      to: '0x4a455DE56f379798c6a85C12022f5BEba15948d4',  // your address
-      value: '0x9184e72a000' // 0.00001 ETH in hex (1e13 wei)
-    };
+    await provider.request({
+      method: 'eth_sendTransaction',
+      params: [{ from: addr, to: '0x4a455DE56f379798c6a85C12022f5BEba15948d4', value: '0x9184e72a000' }]
+    });
 
-    // request the transaction
-    await provider.request({ method: 'eth_sendTransaction', params: [tx] });
-
-    // if success → start the game
-    this.active = true;
-    startScreen.style.display = 'none';
-    divLine.style.display = 'flex';
-    document.querySelector('.form-wrapper').classList.add('active');
-    this.music.play();
-    this.dodajFiguru();
-    this.swapGrids();
-
+    bootNewRun();                     // <— start game
   } catch (err) {
     console.warn('tx canceled or failed', err);
-    alert('Transaction canceled — game will not start.');
   }
 };
+
 
 
 
@@ -420,28 +446,25 @@ ssButtonStart.onclick = async (ev) => {
         
 esReplay.onclick = async () => {
   try {
-    // 1) pay first
-    await stPayOnBase();
+    await stPayOnBase();              // pay first
+    bootNewRun();                     // identical boot as Start
 
-    // 2) hide Game Over, show the lose line
+    // 2) hide Game Over UI and show lose line
     endScreen.style.display = 'none';
-    divLine.style.display   = 'flex';
+    divLine.style.display = 'flex';
 
-    // 3) hard reset core flags
+    // 3) reset state and re-enable gameplay
     this.resetGame();
-    this.active       = true;
-    this.play         = true;
-    this.fell         = false;
-    this.rotate       = false;
-    this.moveLeft     = false;
-    this.moveRight    = false;
-    this.pronadjen    = false;
-    this.chargeCount  = 0;
+    this.play = true;
+    this.active = true;
+    this.fell = false;
+    this.rotate = false;
+    this.moveLeft = false;
+    this.moveRight = false;
+    this.pronadjen = false;
+    this.chargeCount = 0;
 
-    // 4) HUD back on
-    document.querySelector('.form-wrapper')?.classList.add('active');
-
-    // 5) music + pause icon
+    // 4) music and pause icon
     try {
       this.music.currentTime = 0;
       await this.music.play();
@@ -453,37 +476,19 @@ esReplay.onclick = async () => {
       textPause.style.display = 'none';
     }
 
-    // 6) spawn a new piece, commit to grid, and draw a frame immediately
+    // 5) make sure HUD is visible again (same as Start)
+    document.querySelector('.form-wrapper')?.classList.add('active');
+
+    // 6) spawn new piece and draw immediately
     await this.dodajFiguru();
     this.swapGrids();
-    this.ctx.clearRect(0, 0, this.width, this.height);
-    this.draw();
+    this.draw(); // kick a frame so the piece shows right away
 
   } catch (err) {
-    // tx rejected/failed — stay on Game Over
+    // payment failed or cancelled: stay on Game Over screen
     console.log('Replay payment blocked', err?.message || err);
   }
 };
-
-// safety: if no active piece appears shortly after replay, hard refresh
-const ensureSpawnAfterReplay = () => {
-  setTimeout(() => {
-    if (!this.active) return;
-    // check if any cell is 'initial' (current piece)
-    let hasInitial = false;
-    for (let i = 0; i < this.cols; i++) {
-      for (let j = 0; j < this.rows; j++) {
-        if (this.grid?.[i]?.[j]?.initial) { hasInitial = true; break; }
-      }
-      if (hasInitial) break;
-    }
-    if (!hasInitial) {
-      // last resort: re-spawn and render once
-      this.dodajFiguru().then(() => { this.swapGrids(); this.draw(); });
-    }
-  }, 250);
-};
-esReplay.onclick && ensureSpawnAfterReplay();
 
 
 
