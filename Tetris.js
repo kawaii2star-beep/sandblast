@@ -416,22 +416,32 @@ ssButtonStart.onclick = async (ev) => {
         esTextReplay.classList.add('es-text-replay')
         esReplay.appendChild(esTextReplay)
 
-esReplay.onclick = async () => {
-  // keep end screen visible until payment succeeds
-  // divLine stays hidden too
+
+        
+        esReplay.onclick = async () => {
   try {
+    // 1) pay first
     await stPayOnBase();
 
-    // payment ok -> hide end screen and start fresh
-    endScreen.style.display = 'none';   
+    // 2) hide Game Over UI and show lose line
+    endScreen.style.display = 'none';
     divLine.style.display = 'flex';
 
+    // 3) reset state and re-enable gameplay
     this.resetGame();
+    this.play = true;
     this.active = true;
+    this.fell = false;
+    this.rotate = false;
+    this.moveLeft = false;
+    this.moveRight = false;
+    this.pronadjen = false;
+    this.chargeCount = 0;
 
+    // 4) music and pause icon
     try {
       this.music.currentTime = 0;
-      this.music.play().catch(()=>{});
+      await this.music.play();
     } catch {}
 
     if (this.pauseEl) {
@@ -440,14 +450,19 @@ esReplay.onclick = async () => {
       textPause.style.display = 'none';
     }
 
-    this.dodajFiguru();
+    // 5) make sure HUD is visible again (same as Start)
+    document.querySelector('.form-wrapper')?.classList.add('active');
+
+    // 6) spawn new piece and draw immediately
+    await this.dodajFiguru();
     this.swapGrids();
+    this.draw(); // kick a frame so the piece shows right away
+
   } catch (err) {
-    // payment rejected or failed -> stay on end screen, do nothing
+    // payment failed or cancelled: stay on Game Over screen
     console.log('Replay payment blocked', err?.message || err);
   }
 };
-
 
 
 
