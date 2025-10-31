@@ -30,8 +30,7 @@ async function callAddToMiniApps() {
 function maybeShowAddToMiniAppsPrompt() {
   try {
     if (!window.sdk) return;
-    if (localStorage.getItem('st_add_prompt_v1') === 'done') return;
-
+    
     const overlay = document.createElement('div');
     overlay.className = 'miniapp-prompt-overlay';
     const box = document.createElement('div');
