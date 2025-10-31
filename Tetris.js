@@ -3,84 +3,67 @@ window.sdk = sdk;
 sdk.actions.ready();
 
 
-function maybeShowAddToMiniAppsPrompt() {
-  try {
-    if (!window.sdk) return;
+// Ensure the Farcaster SDK is available
+const LS_KEY = 'candycrush:addMiniAppPrompt:added';
+let open = false;
+let busy = false;
 
-    // don’t re-show if successfully added before
-    if (localStorage.getItem('st_add_prompt_v1') === 'done') return;
-
-    const overlay = document.createElement('div');
-    overlay.className = 'miniapp-prompt-overlay';
-
-    const box = document.createElement('div');
-    box.className = 'miniapp-prompt-box';
-    box.innerHTML = `
-      <div class="miniapp-prompt-title">Add to Mini Apps</div>
-      <div class="miniapp-prompt-text">Pin Sand Tetris to your Mini Apps for quick access</div>
-      <div class="miniapp-prompt-actions">
-        <button class="miniapp-prompt-add">Add</button>
-        <button class="miniapp-prompt-later">Not now</button>
-      </div>
-    `;
-
-    overlay.appendChild(box);
-    document.body.appendChild(overlay);
-
-    const close = () => overlay.remove();
-
-    const callAddToMiniApps = async () => {
-      // normalize across SDKs
-      const a = window.sdk?.actions || {};
-      if (typeof a.isAvailable === 'function') {
-        const ok = await a.isAvailable('addToMiniApps').catch(() => false);
-        if (!ok) throw new Error('addToMiniApps not available');
-      }
-
-      if (typeof a.addToMiniApps === 'function') {
-        return a.addToMiniApps();
-      }
-      if (typeof a.openAddToMiniApps === 'function') {
-        return a.openAddToMiniApps();
-      }
-      // legacy fallback some apps still ship
-      if (typeof a.addToFavorites === 'function') {
-        return a.addToFavorites();
-      }
-      throw new Error('No add API on this SDK');
-    };
-
-    box.querySelector('.miniapp-prompt-add').onclick = async () => {
-      try {
-        await callAddToMiniApps();
-        // success only
-        localStorage.setItem('st_add_prompt_v1', 'done');
-        close();
-      } catch (e) {
-        // not in Warpcast or action missing
-        alert('Open this game inside Warpcast Mini Apps, then tap Add to Mini Apps.');
-        // do NOT set done so we can try again later
-      }
-    };
-
-    box.querySelector('.miniapp-prompt-later').onclick = () => {
-      // snooze, try again next load
-      close();
-    };
-
-    // click outside closes
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) close();
-    });
-  } catch {}
+// Function to show the popup
+function showAddMiniAppPopup() {
+  const popup = document.getElementById('add-mini-app-popup');
+  popup.style.display = 'grid';
 }
 
+// Hide the popup
+function hideAddMiniAppPopup() {
+  const popup = document.getElementById('add-mini-app-popup');
+  popup.style.display = 'none';
+}
 
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(maybeShowAddToMiniAppsPrompt, 500);
+// Check if the game has already been added
+function checkIfGameAdded() {
+  const added = localStorage.getItem(LS_KEY) === 'yes';
+  return added;
+}
+
+// Handle Confirm Button Click (user confirms adding the game)
+document.getElementById('confirm-btn').addEventListener('click', async () => {
+  try {
+    busy = true;
+    document.getElementById('confirm-btn').textContent = 'Working…'; // Show working state
+    await window.sdk.actions.addMiniApp(); // Ask to add to Farcaster
+
+    // Only after successfully adding the game, mark it as added in localStorage
+    localStorage.setItem(LS_KEY, 'yes');
+    console.log("Game successfully added to Farcaster.");
+
+    // Hide the popup after confirming
+    hideAddMiniAppPopup();
+  } catch (error) {
+    // If user dismissed or error occurred, don't set flag
+    console.error("Error adding mini app to Farcaster:", error);
+  } finally {
+    busy = false;
+    document.getElementById('confirm-btn').textContent = busy ? 'Working…' : 'Confirm';
+  }
 });
 
+// Handle Cancel Button Click (user cancels the action)
+document.getElementById('cancel-btn').addEventListener('click', () => {
+  // Just close for now, no flag, so it will appear next launch
+  hideAddMiniAppPopup();
+});
 
+// Check and Show Popup based on `localStorage` flag
+window.onload = () => {
+  // Check if game has been added (if the flag is set in localStorage)
+  const added = checkIfGameAdded();
+
+  // If not added yet, show the popup
+  if (!added) {
+    showAddMiniAppPopup();
+  }
+};
 
 
 export class Tetris{
