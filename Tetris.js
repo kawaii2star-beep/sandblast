@@ -3,7 +3,7 @@ window.sdk = sdk;
 sdk.actions.ready();
 
 
-// show-once Add to Mini Apps
+// show-once Add to Mini Apps (only after actually added)
 (function(){
   const LS_KEY = 'yourgame:addMiniAppPrompt:added';
   const popup = document.getElementById('add-mini-app-popup');
@@ -13,35 +13,57 @@ sdk.actions.ready();
   function hide(){ if (popup) popup.style.display = 'none'; }
   function show(){ if (popup) popup.style.display = 'grid'; }
 
+  // helper: verify with SDK if available, else fallback to LS
+  async function hasActuallyAdded(){
+    try {
+      if (window.sdk?.actions?.isMiniAppAdded) {
+        // give the host a moment to finish after the native prompt
+        await new Promise(r => setTimeout(r, 250));
+        return await window.sdk.actions.isMiniAppAdded();
+      }
+    } catch {}
+    return localStorage.getItem(LS_KEY) === 'yes';
+  }
+
   async function shouldShow() {
-    // only inside mini app, and only if not previously added
     if (!window.sdk) return false;
     try {
-      const inMini = await window.sdk.isInMiniApp();
-      const added = localStorage.getItem(LS_KEY) === 'yes';
-      return inMini && !added;
+      const inMini = await window.sdk.isInMiniApp?.();
+      const already = await hasActuallyAdded();
+      return !!inMini && !already;
     } catch { return false; }
   }
 
   // open if needed when DOM is ready
   document.addEventListener('DOMContentLoaded', async () => {
+    // safety: if LS says yes but SDK says not added, clear it
+    if (localStorage.getItem(LS_KEY) === 'yes' && !(await hasActuallyAdded())) {
+      localStorage.removeItem(LS_KEY);
+    }
     if (await shouldShow()) show();
   });
 
   // cancel just closes (will show again next time)
   btnCancel?.addEventListener('click', hide);
 
-  // confirm triggers native add flow, and marks as added only if it resolves
+  // confirm -> native add flow -> verify -> only then remember
   btnConfirm?.addEventListener('click', async () => {
     if (!window.sdk?.actions?.addMiniApp) return hide();
     try {
       btnConfirm.disabled = true;
       btnConfirm.textContent = 'Working…';
+
       await window.sdk.actions.addMiniApp();
-      localStorage.setItem(LS_KEY, 'yes');   // mark only after successful confirm
-      hide();
+
+      // verify it’s truly added
+      if (await hasActuallyAdded()) {
+        localStorage.setItem(LS_KEY, 'yes');
+        hide();
+        console.log('ok added, popup will not show again');
+      } else {
+        console.log('user dismissed or host didn’t add; will ask again later');
+      }
     } catch (e) {
-      // user dismissed or error -> do not set flag so we can ask again later
       console.log('addMiniApp dismissed/failed', e);
     } finally {
       btnConfirm.disabled = false;
@@ -49,6 +71,7 @@ sdk.actions.ready();
     }
   });
 })();
+
 
 
 export class Tetris{
