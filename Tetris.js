@@ -62,54 +62,33 @@ async function stPayOnBase() {
 
   try { await window.sdk.actions.ready(); } catch {}
 
-// request account and keep address
-let addr;
-try {
+  // connect
   const accs = await eth.request({ method: 'eth_requestAccounts' });
-  addr = accs?.[0];
+  const addr = accs?.[0];
   if (!addr) throw new Error('no-account');
-} catch (e) {
-  throw new Error('wallet-denied');
-}
-
 
   // ensure Base
+  const ST_BASE_CHAIN_ID_HEX = '0x2105';
   let chainId = await eth.request({ method: 'eth_chainId' });
   if (chainId !== ST_BASE_CHAIN_ID_HEX) {
-    try {
-      await eth.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: ST_BASE_CHAIN_ID_HEX }],
-      });
-      chainId = ST_BASE_CHAIN_ID_HEX;
-    } catch {
-      throw new Error('switch-denied');
-    }
-  }
-
-// send tx with from
-const hash = await eth.request({
-  method: 'eth_sendTransaction',
-  params: [{
-    from: addr,
-    to: ST_PAYMENT_TO,
-    value: ST_PAYMENT_VALUE_HEX
-  }],
-});
-
-  // wait for confirmation
-  const wait = (ms) => new Promise(r => setTimeout(r, ms));
-  for (let i = 0; i < 120; i++) {
-    const rcpt = await eth.request({
-      method: 'eth_getTransactionReceipt',
-      params: [hash],
+    await eth.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: ST_BASE_CHAIN_ID_HEX }],
     });
-    if (rcpt && rcpt.status === '0x1') return hash;
-    if (rcpt && rcpt.status === '0x0') throw new Error('tx-failed');
-    await wait(2000);
   }
-  throw new Error('tx-timeout');
+
+  // send tx and return immediately when user confirms
+  const ST_PAYMENT_TO = '0x4a455DE56f379798c6a85C12022f5BEba15948d4';
+  const ST_PAYMENT_VALUE_HEX = '0x9184e72a000'; // 0.00001 ETH
+
+  const hash = await eth.request({
+    method: 'eth_sendTransaction',
+    params: [{ from: addr, to: ST_PAYMENT_TO, value: ST_PAYMENT_VALUE_HEX }],
+  });
+
+  return hash; // no receipt waiting
 }
+
 
 export class Tetris{
 
