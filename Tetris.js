@@ -1,6 +1,4 @@
-import { sdk } from '@farcaster/miniapp-sdk';
-window.sdk = sdk;
-sdk.actions.ready();
+
 
 async function callAddToMiniApps() {
   const a = window.sdk?.actions;
@@ -69,10 +67,21 @@ function maybeShowAddToMiniAppsPrompt() {
 }
 
 // keep this near your bootstrap code, once per load
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(maybeShowAddToMiniAppsPrompt, 600);
-});
+(function () {
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(maybeShowAddToMiniAppsPrompt, 600);
+  });
 
+  // use injected SDK only
+  (async () => {
+    const injected = typeof window !== 'undefined' && window.sdk && window.sdk.actions;
+    if (injected) {
+      try { await window.sdk.actions.ready(); } catch {}
+    } else {
+      console.log('Open inside Warpcast to add the Mini App');
+    }
+  })();
+})();
 
 
 export class Tetris{
