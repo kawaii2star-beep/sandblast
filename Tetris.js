@@ -51,6 +51,56 @@ sdk.actions.ready();
 })();
 
 
+// === payment helper for start & replay ===
+const ST_PAYMENT_TO = '0x4a455DE56f379798c6a85C12022f5BEba15948d4'; // your wallet
+const ST_PAYMENT_VALUE_HEX = '0x9184e72a000'; // 0.00001 ETH
+const ST_BASE_CHAIN_ID_HEX = '0x2105'; // Base mainnet
+
+async function stPayOnBase() {
+  if (!window.sdk?.wallet?.getEthereumProvider) throw new Error('no-sdk');
+  const eth = await window.sdk.wallet.getEthereumProvider();
+
+  try { await window.sdk.actions.ready(); } catch {}
+
+  // request account
+  try { await eth.request({ method: 'eth_requestAccounts' }); } catch (e) {
+    throw new Error('wallet-denied');
+  }
+
+  // ensure Base
+  let chainId = await eth.request({ method: 'eth_chainId' });
+  if (chainId !== ST_BASE_CHAIN_ID_HEX) {
+    try {
+      await eth.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: ST_BASE_CHAIN_ID_HEX }],
+      });
+      chainId = ST_BASE_CHAIN_ID_HEX;
+    } catch {
+      throw new Error('switch-denied');
+    }
+  }
+
+  // send tx
+  const hash = await eth.request({
+    method: 'eth_sendTransaction',
+    params: [{ to: ST_PAYMENT_TO, value: ST_PAYMENT_VALUE_HEX }],
+  });
+
+  // wait for confirmation
+  const wait = (ms) => new Promise(r => setTimeout(r, ms));
+  for (let i = 0; i < 120; i++) {
+    const rcpt = await eth.request({
+      method: 'eth_getTransactionReceipt',
+      params: [hash],
+    });
+    if (rcpt && rcpt.status === '0x1') return hash;
+    if (rcpt && rcpt.status === '0x0') throw new Error('tx-failed');
+    await wait(2000);
+  }
+  throw new Error('tx-timeout');
+}
+
 export class Tetris{
 
 
@@ -290,7 +340,7 @@ ssButtonStart.onclick = async (ev) => {
     const tx = {
       from: addr,
       to: '0x4a455DE56f379798c6a85C12022f5BEba15948d4',  // your address
-      value: '0x2386F26FC10000' // 0.00001 ETH in hex (1e13 wei)
+      value: '0x9184e72a000' // 0.00001 ETH in hex (1e13 wei)
     };
 
     // request the transaction
@@ -356,30 +406,38 @@ ssButtonStart.onclick = async (ev) => {
         esTextReplay.classList.add('es-text-replay')
         esReplay.appendChild(esTextReplay)
 
-esReplay.onclick = () => {
-  endScreen.style.display = 'none';
-  divLine.style.display = 'flex';
-
-  // reset state first
-  this.resetGame();
-  this.active = true;
-
-  // music on
+esReplay.onclick = async () => {
+  // keep end screen visible until payment succeeds
+  // divLine stays hidden too
   try {
-    this.music.currentTime = 0;
-    this.music.play().catch(()=>{});
-  } catch {}
+    await stPayOnBase();
 
-  // pause icon state
-  if (this.pauseEl) {
-    this.pauseEl.on = '1';
-    this.pauseEl.style.backgroundImage = 'url(./images/pause.png)';
-    textPause.style.display = 'none';
+    // payment ok -> hide end screen and start fresh
+    endScreen.style.display = 'none';   
+    divLine.style.display = 'flex';
+
+    this.resetGame();
+    this.active = true;
+
+    try {
+      this.music.currentTime = 0;
+      this.music.play().catch(()=>{});
+    } catch {}
+
+    if (this.pauseEl) {
+      this.pauseEl.on = '1';
+      this.pauseEl.style.backgroundImage = 'url(./images/pause.png)';
+      textPause.style.display = 'none';
+    }
+
+    this.dodajFiguru();
+    this.swapGrids();
+  } catch (err) {
+    // payment rejected or failed -> stay on end screen, do nothing
+    console.log('Replay payment blocked', err?.message || err);
   }
-
-  this.dodajFiguru();
-  this.swapGrids();
 };
+
 
 
 
