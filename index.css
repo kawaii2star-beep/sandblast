@@ -1,99 +1,4 @@
 body{
-
-/* mini frame overrides */
-body.fc-mini{
-  display: block !important;
-  justify-content: unset !important;
-  align-items: unset !important;
-  overflow: hidden;
-}
-
-.mini-app{
-  width: 424px;
-  height: 695px;
-  max-width: 100vw;
-  max-height: 100svh;
-  margin: 0 auto;
-  position: relative;
-  border-radius: 16px;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-  background: #06141a;
-  box-shadow: 0 12px 32px rgba(0,0,0,.45);
-}
-
-/* stack layout inside mini frame to avoid clipping */
-.mini-app .game-container{
-  width: 100%;
-  height: 100%;
-  padding: 12px 8px;
-  gap: 10px;
-}
-
-.mini-app .game-title{
-  height: 56px;
-  font-size: 28px;
-}
-
-/* force column layout inside frame */
-.mini-app .game-body{
-  width: 100% !important;
-  height: calc(100% - 64px) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 10px !important;
-  box-shadow: none;
-  border: 1px solid #347cda;
-  background: #06141a;
-}
-
-/* board section */
-.mini-app .game-display{
-  margin: 0 !important;
-  width: 340px;           /* matches start-screen width */
-  position: relative;
-}
-
-/* remove extra scale that causes overflow */
-.mini-app .canva{
-  transform: scale(1) !important;
-  margin-top: 12px;
-}
-
-/* side panel goes under the board */
-.mini-app .form-wrapper{
-  width: 340px;
-  height: auto;
-  margin: 0;
-}
-
-/* settings buttons pinned in-frame */
-.mini-app .settings-div{
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  width: auto;
-  height: 40px;
-}
-
-/* full-bleed on phones */
-@media (max-width: 420px){
-  .mini-app{ width: 100vw; height: 100svh; border-radius: 0; }
-  .mini-app .game-display,
-  .mini-app .form-wrapper{ width: calc(100vw - 24px); }
-}
-
-
-  
-
-
-
-
-
-
   display: flex;
   justify-content: center;
   background-color: rgb(0, 0, 0);
@@ -675,4 +580,182 @@ input:focus + .slider {
     -webkit-transform: translateX(26px);
     -ms-transform: translateX(26px);
     transform: translateX(26px);
+}
+
+/* hide the BLOCKS label and its box */
+label[for="blocks"],
+label:has(+ .form4),
+.form4 {
+  display: none !important;
+}
+
+/* anchor HUD to the top of the game frame */
+.game-body {
+  position: relative;              /* new anchor */
+}
+
+
+
+
+
+
+/* HUD anchored to top of game frame */
+.game-body { position: relative; }
+
+.form-wrapper{
+  position: absolute;
+  top: 20px;
+  left: 54%;
+  transform: translateX(-50%);
+  margin: 0;
+  z-index: 5;
+
+  /* two vertical stacks: [SCORE] [LEVEL] */
+  display: grid;
+  grid-template-columns: 120px 120px;
+  grid-auto-rows: auto;
+  column-gap: 40px;
+  row-gap: 6px;
+  width: auto;
+  height: auto;
+  background: none;
+  box-shadow: none;
+  border: 0;
+}
+
+/* hide NEXT */
+.form-wrapper > label:first-of-type,
+.f-next-display { display: none !important; }
+
+/* place labels above their boxes */
+label:has(+ .f-score-display) {
+  grid-column: 1; grid-row: 1;
+  text-align: center;
+  font-size: 16px;
+  color: #8bc2ff;
+  font-family: prStart;
+  margin: 0;
+}
+.f-score-display{
+  grid-column: 1; grid-row: 2;
+  width: 120px; height: 40px;
+  border: 2px solid #347cda; border-radius: 6px;
+  background: #000;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0; box-shadow: none;
+}
+
+label:has(+ .form3){
+  grid-column: 2; grid-row: 1;
+  text-align: center;
+  font-size: 16px;
+  color: #8bc2ff;
+  font-family: prStart;
+  margin: 0;
+}
+.form3{
+  grid-column: 2; grid-row: 2;
+  width: 120px; height: 40px;
+  border: 2px solid #347cda; border-radius: 6px;
+  background: #000;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0; box-shadow: none;
+}
+
+/* smaller counter text */
+.inner-text { font-size: 16px !important; }
+
+/* hide HUD by default */
+.form-wrapper {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* show HUD only when active */
+.form-wrapper.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+/* hide game title unless on home screen */
+.game-title {
+  display: none;
+}
+
+/* show title only when start screen is visible */
+.start-screen ~ .game-title,
+.start-screen:has(.ss-button-start) {
+  display: flex;
+}
+
+/* title on home screen */
+.home-title {
+  font-family: prStart;
+  font-size: 36px;
+  color: #3fc1e9;
+  text-shadow: 0 3px 6px rgba(0,0,0,0.6);
+  margin-top: 60px;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+/* sound button on home screen */
+.start-screen .settings-home {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+}
+
+.start-screen .settings-home .settings-volume {
+  width: 40px;
+  height: 40px;
+  background-size: 40px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+/* remove extra line from settings container */
+.settings-div {
+  border: none !important;
+  background: none !important;
+  width: auto !important;
+  height: auto !important;
+  box-shadow: none !important;
+}
+
+/* pause button container in-game: no full-width bar */
+.game-display > .settings-div {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  width: 40px !important;
+  height: 40px !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* sound button on home, bottom-right */
+.start-screen > .settings-home {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 40px !important;
+  height: 40px !important;
+}
+
+/* if any stray settings-div remains, hide it */
+.start-screen > .settings-div:not(.settings-home) {
+  display: none !important;
+}
+.game-body {
+  border: none !important;
+  box-shadow: none !important;
+}
+.game-body {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }

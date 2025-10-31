@@ -166,6 +166,12 @@ window.addEventListener('keydown', (event) => {
         startScreen.classList.add('start-screen')
         gameDisplay.appendChild(startScreen)
 
+        // move title into start screen
+const homeTitle = document.createElement('div')
+homeTitle.classList.add('home-title')
+homeTitle.innerHTML = "SAND TETRIS"
+startScreen.appendChild(homeTitle)
+
         //WELCOME
         const ssDivWelcome = document.createElement('div')
         ssDivWelcome.classList.add('ss-div-welcome')
@@ -190,13 +196,10 @@ window.addEventListener('keydown', (event) => {
             this.active = true;
             startScreen.style.display='none'
             divLine.style.display='flex'
+            document.querySelector('.form-wrapper').classList.add('active');
             this.music.play();
             this.dodajFiguru()
             this.swapGrids()
-
-                // hide title when game starts
-    const title = document.querySelector('.game-title');
-    if (title) title.style.display = 'none';
         }
 
         //ABOUT BUTTON
@@ -262,66 +265,57 @@ window.addEventListener('keydown', (event) => {
             this.active = true;
             this.dodajFiguru()
             this.swapGrids()
-
-            
-    // show title again
-    const title = document.querySelector('.game-title');
-    if (title) title.style.display = 'flex';
         }
 
-        //OPTIONS 
+      // OPTIONS
 
-        const soundDiv = document.createElement('div')
-        soundDiv.classList.add('settings-div')
-        gameContainer.appendChild(soundDiv)
+// A) Sound button on HOME (start screen), bottom-right
+const soundDivHome = document.createElement('div');
+soundDivHome.classList.add('settings-div', 'settings-home');
+startScreen.appendChild(soundDivHome);
 
-        const sound = document.createElement('div')
-        sound.classList.add('settings-volume')
-        soundDiv.appendChild(sound)
-        sound.on = true;
+const sound = document.createElement('div');
+sound.classList.add('settings-volume');
+soundDivHome.appendChild(sound);
+sound.on = true;
 
-        sound.onclick = (ev) =>{
-            if(this.active){
+// allow toggling even on home (no this.active check)
+sound.onclick = () => {
+  sound.on = !sound.on;
+  sound.style.backgroundImage = sound.on
+    ? 'url(./images/volume-on.png)'
+    : 'url(./images/volume-off.png)';
+  this.music.volume = sound.on ? 0.2 : 0.0;
+};
 
-                if(sound.on == true){
-                    sound.on = false;
-                    sound.style.backgroundImage = 'url(./images/volume-off.png)'
-                    this.music.volume = 0;
-                }
-                else{
-                    sound.on = true;
-                    sound.style.backgroundImage = 'url(./images/volume-on.png)'
-                    this.music.volume = 0.2;   
-                }
-            }
+// B) Pause button stays in-game (inside the game display)
+const controlsDiv = document.createElement('div');
+controlsDiv.classList.add('settings-div');
+gameDisplay.appendChild(controlsDiv);
 
-        }
-        
-        const pause = document.createElement('div')
-        pause.classList.add('settings-pause')
-        soundDiv.appendChild(pause)
-        pause.on = '1'
+const pause = document.createElement('div');
+pause.classList.add('settings-pause');
+controlsDiv.appendChild(pause);
+pause.on = '1';
 
-        pause.onclick = (ev) =>{
-            if(this.active){
-                if(pause.on == '1'){
-                    this.music.pause()
-                    pause.on = '2';
-                    pause.style.backgroundImage = 'url(./images/play.png)'
-                    textPause.style.display = 'flex'
-                    // divLine.style.display = 'none'
-                    this.active = false;
-                }
-            }
-            else if(pause.on == 2){
-                this.music.play()
-                pause.on = '1';
-                pause.style.backgroundImage = 'url(./images/pause.png)'
-                textPause.style.display = 'none'
-                this.active = true;
-            }
+pause.onclick = () => {
+  if (this.active) {
+    if (pause.on === '1') {
+      this.music.pause();
+      pause.on = '2';
+      pause.style.backgroundImage = 'url(./images/play.png)';
+      textPause.style.display = 'flex';
+      this.active = false;
+    }
+  } else if (pause.on === '2') {
+    this.music.play();
+    pause.on = '1';
+    pause.style.backgroundImage = 'url(./images/pause.png)';
+    textPause.style.display = 'none';
+    this.active = true;
+  }
+};
 
-        }
 
 
         this.createForm(gameBody)
@@ -331,6 +325,7 @@ window.addEventListener('keydown', (event) => {
         this.createCanvasNext()
         this.createCanvas(gameDisplay)
         this.enableGestures(this.canvas);
+        this.canvas.style.touchAction = 'none'
         this.draw()
         this.animate()
 
@@ -459,7 +454,7 @@ window.addEventListener('keydown', (event) => {
         let levels = document.body.querySelector('.levelText');
         if(this.score > 3800 * this.level){
             if(this.frameDelay>5){
-                this.frameDelay-=4;
+                this.frameDelay-=2;
             }
             this.level++
         }
@@ -974,114 +969,11 @@ window.addEventListener('keydown', (event) => {
         this.fell = false;
     }
 
-    generateRandomShade(baseColor) {
-        var factor = Math.random() * 1 ;
-    
-        if(factor < .4){
-            factor = .65
-        }
+generateRandomShade(baseColor) {
+  const { r, g, b } = baseColor;
+  return `rgb(${r}, ${g}, ${b})`; // solid, no shading
+}
 
-        var r = Math.round(baseColor.r * factor);
-        var g = Math.round(baseColor.g * factor);
-        var b = Math.round(baseColor.b * factor);
-        if(baseColor.r == 255 && r < 60){
-            r = 150;
-        }
-        if(baseColor.g == 255 && g < 60){
-            g = 150;
-        }
-        if(baseColor.b == 255 && b < 60){
-            b = 150;
-        }
-
-        if(baseColor.r == 255) {
-            let rnd = Math.floor(Math.random() * 3);
-            if(rnd == 1) {
-                r = 180;
-                g = 20;
-                b = 20;
-            } else if(rnd == 0) {
-                r = 221;
-                g = 25;
-                b = 25;
-            } else if(rnd == 2) {
-                r = 153;
-                g = 17;
-                b = 17;
-            }
-        }
-
-        if(baseColor.g == 255) {
-            let rnd = Math.floor(Math.random() * 3);
-            if(rnd == 1) {
-                r = 15
-                g = 189
-                b = 15
-            } else if(rnd == 0) {
-                r = 17;
-                g = 215;
-                b = 17;
-            } else if(rnd == 2) {
-                r = 12;
-                g = 150;
-                b = 12;
-            }
-        }
-        if(baseColor.b == 255) {
-            let rnd = Math.floor(Math.random() * 3);
-            if(rnd == 1) {
-                r = 47;
-                g = 120;
-                b = 238;
-            } else if(rnd == 0) {
-                r = 33;
-                g = 104;
-                b = 237;
-            } else if(rnd == 2) {
-                r = 19;
-                g = 90;
-                b = 231;
-            }
-        }
-
-        //
-        if(baseColor.r == 254) {
-            let rnd = Math.floor(Math.random() * 3);
-            if(rnd == 1) {
-                r = 240;
-                g = 200;
-                b = 50;
-            } else if(rnd == 0) {
-                r = 230;
-                g = 180;
-                b = 50;
-            } else if(rnd == 2) {
-                r = 220;
-                g = 170;
-                b = 50;
-            }
-        }
-        // if(baseColor.r == 254) {
-        //     let rnd = Math.floor(Math.random() * 3);
-        //     if(rnd == 1) {
-        //         r = 238;
-        //         g = 199;
-        //         b = 51;
-        //     } else if(rnd == 0) {
-        //         r = 238;
-        //         g = 183;
-        //         b = 42;
-        //     } else if(rnd == 2) {
-        //         r = 237;
-        //         g = 177;
-        //         b = 33;
-        //     }
-        // }
-
-
-
-        return `rgb(${r}, ${g}, ${b})`;
-    }
 
     swapGrids(){
         this.grid = this.grid2.map(row => row.slice());
@@ -1235,7 +1127,6 @@ window.addEventListener('keydown', (event) => {
         host.appendChild(canvas);
         this.ctx = canvas.getContext('2d');
         this.canvas = canvas;
-        this.canvas.style.touchAction = 'none'
     }
 
     animate(){
