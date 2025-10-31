@@ -69,12 +69,6 @@ export class Tetris{
                 // this.rotation()
             }
         })
-        // hard-drop on ArrowDown or S
-window.addEventListener('keydown', (event) => {
-  if ((event.key === 'ArrowDown' || event.key === 's') && !event.repeat) {
-    this.fell = true;  // same as your mobile drop button
-  }
-});
 
 // hard-drop on ArrowDown or S
 window.addEventListener('keydown', (event) => {
@@ -192,15 +186,32 @@ startScreen.appendChild(homeTitle)
         textStart.classList.add('textStart')
         ssButtonStart.appendChild(textStart)
 
-        ssButtonStart.onclick = (ev) =>{
-            this.active = true;
-            startScreen.style.display='none'
-            divLine.style.display='flex'
-            document.querySelector('.form-wrapper').classList.add('active');
-            this.music.play();
-            this.dodajFiguru()
-            this.swapGrids()
-        }
+ssButtonStart.onclick = () => {
+  startScreen.style.display = 'none';
+  divLine.style.display = 'flex';
+  document.querySelector('.form-wrapper')?.classList.add('active');
+
+  // reset state first
+  this.resetGame();
+  this.active = true;
+
+  // music on
+  try {
+    this.music.currentTime = 0;
+    this.music.play().catch(()=>{});
+  } catch {}
+
+  // pause icon state
+  if (this.pauseEl) {
+    this.pauseEl.on = '1';
+    this.pauseEl.style.backgroundImage = 'url(./images/pause.png)';
+    textPause.style.display = 'none';
+  }
+
+  this.dodajFiguru();
+  this.swapGrids();
+};
+
 
         //ABOUT BUTTON
         const ssDivAbout = document.createElement('div')
@@ -256,16 +267,32 @@ startScreen.appendChild(homeTitle)
         esTextReplay.classList.add('es-text-replay')
         esReplay.appendChild(esTextReplay)
 
-        esReplay.onclick = (ev) =>{
-            // popStartScreen.style.display='flex'
-            endScreen.style.display='none'
-            divLine.style.display = 'flex'
-            this.resetGame()
-            
-            this.active = true;
-            this.dodajFiguru()
-            this.swapGrids()
-        }
+esReplay.onclick = () => {
+  endScreen.style.display = 'none';
+  divLine.style.display = 'flex';
+
+  // reset state first
+  this.resetGame();
+  this.active = true;
+
+  // music on
+  try {
+    this.music.currentTime = 0;
+    this.music.play().catch(()=>{});
+  } catch {}
+
+  // pause icon state
+  if (this.pauseEl) {
+    this.pauseEl.on = '1';
+    this.pauseEl.style.backgroundImage = 'url(./images/pause.png)';
+    textPause.style.display = 'none';
+  }
+
+  this.dodajFiguru();
+  this.swapGrids();
+};
+
+
 
       // OPTIONS
 
