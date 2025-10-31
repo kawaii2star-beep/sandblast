@@ -4,32 +4,33 @@ async function callAddToMiniApps() {
   const a = window.sdk?.actions;
   if (!a) throw new Error('no sdk');
 
-  // must await ready right before calling sheet
   try { await a.ready(); } catch {}
 
-  // check capability when available
-  try {
-    if (typeof a.isAvailable === 'function') {
-      const ok = await a.isAvailable('addToMiniApps');
-      if (!ok) throw new Error('unavailable');
-    }
-  } catch {}
-
+  // try every known name, in order
   if (typeof a.addToMiniApps === 'function') {
-    return a.addToMiniApps();                         // current
+    return a.addToMiniApps();
   }
   if (typeof a.openAddToMiniApps === 'function') {
-    return a.openAddToMiniApps();                     // alt
+    return a.openAddToMiniApps();
   }
   if (typeof a.addToFavorites === 'function') {
-    return a.addToFavorites();                        // legacy
+    return a.addToFavorites();
+  }
+  if (typeof a.request === 'function') {
+    // some Warpcast builds expose a generic request path
+    try { return await a.request('addToMiniApps'); } catch {}
+    try { return await a.request('openAddToMiniApps'); } catch {}
+    try { return await a.request('addToFavorites'); } catch {}
   }
   throw new Error('no add action');
 }
 
+
+
 function maybeShowAddToMiniAppsPrompt() {
   try {
-    if (!window.sdk) return;
+    if (!isWarpcast()) return;                                   // only inside Warpcast
+    if (!window.sdk?.actions) return;
     if (localStorage.getItem('st_add_prompt_v1') === 'done') return;
 
     const overlay = document.createElement('div');
@@ -39,7 +40,7 @@ function maybeShowAddToMiniAppsPrompt() {
     box.className = 'miniapp-prompt-box';
     box.innerHTML = `
       <div class="miniapp-prompt-title">Add to Mini Apps</div>
-      <div class="miniapp-prompt-text">Pin Sand Tetris to your Mini Apps for quick access</div>
+      <div class="miniapp-prompt-text">Pin Sand Tetris for quick access</div>
       <div class="miniapp-prompt-actions">
         <button class="miniapp-prompt-add">Add</button>
         <button class="miniapp-prompt-later">Not now</button>
@@ -50,31 +51,32 @@ function maybeShowAddToMiniAppsPrompt() {
     overlay.appendChild(box);
     document.body.appendChild(overlay);
 
-    const close = () => overlay.remove();
     const note = box.querySelector('.miniapp-prompt-note');
+    const close = () => overlay.remove();
 
     box.querySelector('.miniapp-prompt-add').onclick = async () => {
       note.textContent = '';
       try {
-        await callAddToMiniApps();                 // opens Warpcast sheet when available
+        await callAddToMiniApps();
         localStorage.setItem('st_add_prompt_v1', 'done');
         close();
       } catch (e) {
-        // no alert here, write to the popup
-        note.textContent = 'Open this game inside Warpcast to add it to Mini Apps.';
-        console.warn('addToMiniApps failed or unavailable', e);
+        note.textContent = 'Add action not available in this Warpcast build';
+        console.warn(e);
       }
     };
 
     box.querySelector('.miniapp-prompt-later').onclick = close;
-
-    // click outside closes
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) close();
-    });
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
   } catch {}
 }
 
+
+function isWarpcast() {
+  // injected sdk plus UA hint covers most cases
+  const ua = navigator.userAgent || '';
+  return !!(window.sdk && window.sdk.actions) || ua.includes('Warpcast');
+}
 
 // keep this near your bootstrap code, once per load
 (function () {
