@@ -382,25 +382,47 @@ const bootNewRun = () => {
         textStart.classList.add('textStart')
         ssButtonStart.appendChild(textStart)
 
+// --- shared launch after payment ---
+const launchGame = () => {
+  startScreen.style.display = 'none';
+  endScreen.style.display   = 'none';
+  divLine.style.display     = 'flex';
+  document.querySelector('.form-wrapper')?.classList.add('active');
+
+  this.resetGame();
+  this.destroyArray.length = 0;
+  this.play = true;
+  this.active = true;
+  this.fell = false;
+  this.rotate = false;
+  this.moveLeft = false;
+  this.moveRight = false;
+  this.pronadjen = false;
+  this.chargeCount = 0;
+
+  try { this.music.currentTime = 0; this.music.play().catch(()=>{}); } catch {}
+  if (this.pauseEl) {
+    this.pauseEl.on = '1';
+    this.pauseEl.style.backgroundImage = 'url(./images/pause.png)';
+    textPause.style.display = 'none';
+  }
+
+  this.dodajFiguru();
+  this.swapGrids();
+  this.ctx.clearRect(0, 0, this.width, this.height);
+  this.draw();
+};
+
+// --- START BUTTON: pay + launch ---
 ssButtonStart.onclick = async () => {
   try {
-    const provider = await window.sdk?.wallet?.getEthereumProvider?.();
-    if (!provider) throw new Error('no-provider');
-
-    const accounts = await provider.request({ method: 'eth_requestAccounts' });
-    const addr = accounts && accounts[0];
-    if (!addr) throw new Error('no-account');
-
-    await provider.request({
-      method: 'eth_sendTransaction',
-      params: [{ from: addr, to: '0x4a455DE56f379798c6a85C12022f5BEba15948d4', value: '0x9184e72a000' }]
-    });
-
-    bootNewRun();                     // <— start game
+    await stPayOnBase();
+    launchGame();
   } catch (err) {
     console.warn('tx canceled or failed', err);
   }
 };
+
 
 
 
@@ -450,15 +472,15 @@ ssButtonStart.onclick = async () => {
 
 
         
-// minimal, no duplicate resets
 esReplay.onclick = async () => {
   try {
-    await stPayOnBase();                       // pay first
-    requestAnimationFrame(() => bootNewRun()); // then clean boot
+    await stPayOnBase();
+    launchGame(); // ← call the same function Start uses
   } catch (err) {
     console.log('Replay payment blocked', err?.message || err);
   }
 };
+
 
 
 
