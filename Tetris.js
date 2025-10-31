@@ -30,9 +30,11 @@ async function callAddToMiniApps() {
 function maybeShowAddToMiniAppsPrompt() {
   try {
     if (!window.sdk) return;
-    
+    if (localStorage.getItem('st_add_prompt_v1') === 'done') return;
+
     const overlay = document.createElement('div');
     overlay.className = 'miniapp-prompt-overlay';
+
     const box = document.createElement('div');
     box.className = 'miniapp-prompt-box';
     box.innerHTML = `
@@ -42,28 +44,37 @@ function maybeShowAddToMiniAppsPrompt() {
         <button class="miniapp-prompt-add">Add</button>
         <button class="miniapp-prompt-later">Not now</button>
       </div>
+      <div class="miniapp-prompt-note" style="margin-top:8px;font:14px prStart;color:#8bc2ff;min-height:18px;"></div>
     `;
+
     overlay.appendChild(box);
     document.body.appendChild(overlay);
 
     const close = () => overlay.remove();
+    const note = box.querySelector('.miniapp-prompt-note');
 
     box.querySelector('.miniapp-prompt-add').onclick = async () => {
+      note.textContent = '';
       try {
-        await callAddToMiniApps();
-        localStorage.setItem('st_add_prompt_v1', 'done');  // mark only on success
+        await callAddToMiniApps();                 // opens Warpcast sheet when available
+        localStorage.setItem('st_add_prompt_v1', 'done');
         close();
       } catch (e) {
-        // outside Warpcast or unsupported SDK
-        alert('Open this game inside Warpcast, then try again');
-        // do not mark done so it can trigger later
+        // no alert here, write to the popup
+        note.textContent = 'Open this game inside Warpcast to add it to Mini Apps.';
+        console.warn('addToMiniApps failed or unavailable', e);
       }
     };
 
     box.querySelector('.miniapp-prompt-later').onclick = close;
-    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+    // click outside closes
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) close();
+    });
   } catch {}
 }
+
 
 // keep this near your bootstrap code, once per load
 (function () {
