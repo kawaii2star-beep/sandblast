@@ -418,27 +418,30 @@ ssButtonStart.onclick = async (ev) => {
 
 
         
-        esReplay.onclick = async () => {
+esReplay.onclick = async () => {
   try {
     // 1) pay first
     await stPayOnBase();
 
-    // 2) hide Game Over UI and show lose line
+    // 2) hide Game Over, show the lose line
     endScreen.style.display = 'none';
-    divLine.style.display = 'flex';
+    divLine.style.display   = 'flex';
 
-    // 3) reset state and re-enable gameplay
+    // 3) hard reset core flags
     this.resetGame();
-    this.play = true;
-    this.active = true;
-    this.fell = false;
-    this.rotate = false;
-    this.moveLeft = false;
-    this.moveRight = false;
-    this.pronadjen = false;
-    this.chargeCount = 0;
+    this.active       = true;
+    this.play         = true;
+    this.fell         = false;
+    this.rotate       = false;
+    this.moveLeft     = false;
+    this.moveRight    = false;
+    this.pronadjen    = false;
+    this.chargeCount  = 0;
 
-    // 4) music and pause icon
+    // 4) HUD back on
+    document.querySelector('.form-wrapper')?.classList.add('active');
+
+    // 5) music + pause icon
     try {
       this.music.currentTime = 0;
       await this.music.play();
@@ -450,19 +453,18 @@ ssButtonStart.onclick = async (ev) => {
       textPause.style.display = 'none';
     }
 
-    // 5) make sure HUD is visible again (same as Start)
-    document.querySelector('.form-wrapper')?.classList.add('active');
-
-    // 6) spawn new piece and draw immediately
+    // 6) spawn a new piece, commit to grid, and draw a frame immediately
     await this.dodajFiguru();
     this.swapGrids();
-    this.draw(); // kick a frame so the piece shows right away
+    this.ctx.clearRect(0, 0, this.width, this.height);
+    this.draw();
 
   } catch (err) {
-    // payment failed or cancelled: stay on Game Over screen
+    // tx rejected/failed — stay on Game Over
     console.log('Replay payment blocked', err?.message || err);
   }
 };
+
 
 
 
