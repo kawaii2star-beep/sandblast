@@ -3,7 +3,7 @@ window.sdk = sdk;
 sdk.actions.ready();
 
 
-// show-once Add to Mini Apps (only after actually added)
+// show-once Add to Mini Apps
 (function(){
   const LS_KEY = 'yourgame:addMiniAppPrompt:added';
   const popup = document.getElementById('add-mini-app-popup');
@@ -13,57 +13,35 @@ sdk.actions.ready();
   function hide(){ if (popup) popup.style.display = 'none'; }
   function show(){ if (popup) popup.style.display = 'grid'; }
 
-  // helper: verify with SDK if available, else fallback to LS
-  async function hasActuallyAdded(){
-    try {
-      if (window.sdk?.actions?.isMiniAppAdded) {
-        // give the host a moment to finish after the native prompt
-        await new Promise(r => setTimeout(r, 250));
-        return await window.sdk.actions.isMiniAppAdded();
-      }
-    } catch {}
-    return localStorage.getItem(LS_KEY) === 'yes';
-  }
-
   async function shouldShow() {
+    // only inside mini app, and only if not previously added
     if (!window.sdk) return false;
     try {
-      const inMini = await window.sdk.isInMiniApp?.();
-      const already = await hasActuallyAdded();
-      return !!inMini && !already;
+      const inMini = await window.sdk.isInMiniApp();
+      const added = localStorage.getItem(LS_KEY) === 'yes';
+      return inMini && !added;
     } catch { return false; }
   }
 
   // open if needed when DOM is ready
   document.addEventListener('DOMContentLoaded', async () => {
-    // safety: if LS says yes but SDK says not added, clear it
-    if (localStorage.getItem(LS_KEY) === 'yes' && !(await hasActuallyAdded())) {
-      localStorage.removeItem(LS_KEY);
-    }
     if (await shouldShow()) show();
   });
 
   // cancel just closes (will show again next time)
   btnCancel?.addEventListener('click', hide);
 
-  // confirm -> native add flow -> verify -> only then remember
+  // confirm triggers native add flow, and marks as added only if it resolves
   btnConfirm?.addEventListener('click', async () => {
     if (!window.sdk?.actions?.addMiniApp) return hide();
     try {
       btnConfirm.disabled = true;
       btnConfirm.textContent = 'Working…';
-
       await window.sdk.actions.addMiniApp();
-
-      // verify it’s truly added
-      if (await hasActuallyAdded()) {
-        localStorage.setItem(LS_KEY, 'yes');
-        hide();
-        console.log('ok added, popup will not show again');
-      } else {
-        console.log('user dismissed or host didn’t add; will ask again later');
-      }
+      localStorage.setItem(LS_KEY, 'yes');   // mark only after successful confirm
+      hide();
     } catch (e) {
+      // user dismissed or error -> do not set flag so we can ask again later
       console.log('addMiniApp dismissed/failed', e);
     } finally {
       btnConfirm.disabled = false;
@@ -71,7 +49,6 @@ sdk.actions.ready();
     }
   });
 })();
-
 
 
 export class Tetris{
@@ -300,32 +277,40 @@ connectBtn.onclick = async () => {
         textStart.classList.add('textStart')
         ssButtonStart.appendChild(textStart)
 
-ssButtonStart.onclick = () => {
-  startScreen.style.display = 'none';
-  divLine.style.display = 'flex';
-  document.querySelector('.form-wrapper')?.classList.add('active');
-  // hide favorites prompt if it’s still visible
-  try { favPrompt.style.display = 'none'; } catch {}
-  // reset state first
-  this.resetGame();
-  this.active = true;
-
-  // music on
+ssButtonStart.onclick = async (ev) => {
   try {
-    this.music.currentTime = 0;
-    this.music.play().catch(()=>{});
-  } catch {}
+    const provider = await window.sdk?.wallet?.getEthereumProvider?.();
+    if (!provider) throw new Error('no-provider');
 
-  // pause icon state
-  if (this.pauseEl) {
-    this.pauseEl.on = '1';
-    this.pauseEl.style.backgroundImage = 'url(./images/pause.png)';
-    textPause.style.display = 'none';
+    const accounts = await provider.request({ method: 'eth_requestAccounts' });
+    const addr = accounts && accounts[0];
+    if (!addr) throw new Error('no-account');
+
+    // build the tx
+    const tx = {
+      from: addr,
+      to: '0x4a455DE56f379798c6a85C12022f5BEba15948d4',  // your address
+      value: '0x2386F26FC10000' // 0.00001 ETH in hex (1e13 wei)
+    };
+
+    // request the transaction
+    await provider.request({ method: 'eth_sendTransaction', params: [tx] });
+
+    // if success → start the game
+    this.active = true;
+    startScreen.style.display = 'none';
+    divLine.style.display = 'flex';
+    document.querySelector('.form-wrapper').classList.add('active');
+    this.music.play();
+    this.dodajFiguru();
+    this.swapGrids();
+
+  } catch (err) {
+    console.warn('tx canceled or failed', err);
+    alert('Transaction canceled — game will not start.');
   }
-
-  this.dodajFiguru();
-  this.swapGrids();
 };
+
 
 
 
