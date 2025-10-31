@@ -1,64 +1,54 @@
-// --- identical to Candy Crush version ---
-import { sdk } from "@farcaster/miniapp-sdk";
+import { sdk } from '@farcaster/miniapp-sdk';
+window.sdk = sdk;
+sdk.actions.ready();
 
-function showAddPrompt() {
-  if (localStorage.getItem("st_add_prompt_v1") === "done") return;
 
-  const overlay = document.createElement("div");
-  overlay.className = "miniapp-prompt-overlay";
+// show-once Add to Mini Apps
+(function(){
+  const LS_KEY = 'yourgame:addMiniAppPrompt:added';
+  const popup = document.getElementById('add-mini-app-popup');
+  const btnConfirm = document.getElementById('confirm-addma');
+  const btnCancel  = document.getElementById('cancel-addma');
 
-  const box = document.createElement("div");
-  box.className = "miniapp-prompt-box";
-  box.innerHTML = `
-    <div class="miniapp-prompt-title">Add to Mini Apps</div>
-    <div class="miniapp-prompt-text">Pin Sand Tetris for quick access</div>
-    <div class="miniapp-prompt-actions">
-      <button class="miniapp-prompt-add">Add</button>
-      <button class="miniapp-prompt-later">Not now</button>
-    </div>
-  `;
-  overlay.appendChild(box);
-  document.body.appendChild(overlay);
+  function hide(){ if (popup) popup.style.display = 'none'; }
+  function show(){ if (popup) popup.style.display = 'grid'; }
 
-  const close = () => overlay.remove();
-
-box.querySelector(".miniapp-prompt-add").onclick = async () => {
-  try {
-    // prefer the injected SDK in Warpcast, fall back to import
-    const a = (window.sdk && window.sdk.actions) || sdk.actions;
-    if (!a) throw new Error("no actions");
-
-    await a.ready();
-
-    // normalize across versions
-    const fn =
-      a.addToMiniApps ||
-      a.openAddToMiniApps ||
-      a.addToFavorites; // legacy
-
-    if (!fn) throw new Error("no add sheet available");
-
-    await fn.call(a);
-
-    localStorage.setItem("st_add_prompt_v1", "done");
-  } catch (e) {
-    console.warn("Add failed:", e);
-    // no alert, just keep the prompt so user can retry in Warpcast
-  } finally {
-    // close either way, same as Candy Crush UX
-    document.querySelector(".miniapp-prompt-overlay")?.remove();
+  async function shouldShow() {
+    // only inside mini app, and only if not previously added
+    if (!window.sdk) return false;
+    try {
+      const inMini = await window.sdk.isInMiniApp();
+      const added = localStorage.getItem(LS_KEY) === 'yes';
+      return inMini && !added;
+    } catch { return false; }
   }
-};
 
+  // open if needed when DOM is ready
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (await shouldShow()) show();
+  });
 
-  box.querySelector(".miniapp-prompt-later").onclick = close;
-  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
-}
+  // cancel just closes (will show again next time)
+  btnCancel?.addEventListener('click', hide);
 
-// --- boot prompt on load ---
-document.addEventListener("DOMContentLoaded", () => {
-  setTimeout(showAddPrompt, 500);
-});
+  // confirm triggers native add flow, and marks as added only if it resolves
+  btnConfirm?.addEventListener('click', async () => {
+    if (!window.sdk?.actions?.addMiniApp) return hide();
+    try {
+      btnConfirm.disabled = true;
+      btnConfirm.textContent = 'Working…';
+      await window.sdk.actions.addMiniApp();
+      localStorage.setItem(LS_KEY, 'yes');   // mark only after successful confirm
+      hide();
+    } catch (e) {
+      // user dismissed or error -> do not set flag so we can ask again later
+      console.log('addMiniApp dismissed/failed', e);
+    } finally {
+      btnConfirm.disabled = false;
+      btnConfirm.textContent = 'Confirm';
+    }
+  });
+})();
 
 
 export class Tetris{
@@ -415,7 +405,6 @@ pause.onclick = () => {
         this.enableGestures(this.canvas);
         this.draw()
         this.animate()
-setTimeout(maybeShowAddToMiniAppsPrompt, 0);
     }  
 
     enableGestures(target){
