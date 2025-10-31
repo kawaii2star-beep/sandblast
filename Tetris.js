@@ -465,6 +465,25 @@ esReplay.onclick = async () => {
   }
 };
 
+// safety: if no active piece appears shortly after replay, hard refresh
+const ensureSpawnAfterReplay = () => {
+  setTimeout(() => {
+    if (!this.active) return;
+    // check if any cell is 'initial' (current piece)
+    let hasInitial = false;
+    for (let i = 0; i < this.cols; i++) {
+      for (let j = 0; j < this.rows; j++) {
+        if (this.grid?.[i]?.[j]?.initial) { hasInitial = true; break; }
+      }
+      if (hasInitial) break;
+    }
+    if (!hasInitial) {
+      // last resort: re-spawn and render once
+      this.dodajFiguru().then(() => { this.swapGrids(); this.draw(); });
+    }
+  }, 250);
+};
+esReplay.onclick && ensureSpawnAfterReplay();
 
 
 
