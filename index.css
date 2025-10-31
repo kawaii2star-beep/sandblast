@@ -784,3 +784,137 @@ body.fc-mini {
 
 
 
+/* clean page bg in mini mode (no dotted bg) */
+body.fc-mini{
+  margin: 0;
+  background: #06141a !important;
+  background-image: none !important;
+  display: grid;
+  place-items: center;
+  height: 100svh;
+}
+
+/* simple shell that frames the existing game */
+.mini-app{
+  width: 424px;
+  height: 695px;
+  max-width: 100vw;
+  max-height: 100svh;
+  border: 1px solid #347cda;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.45);
+  overflow: auto;         /* allow natural scroll if content is taller */
+  background: transparent;
+  padding: 8px;           /* subtle breathing room; tweak if you want */
+}
+
+/* make the game root fill the shell without changing internals */
+.mini-app #game-root{
+  width: 100%;
+  height: 100%;
+}
+
+/* OPTIONAL: if you want a tighter fit without scroll, enable this: */
+/*
+.mini-app #game-root{
+  transform: scale(0.96);
+  transform-origin: top center;
+}
+*/
+
+
+
+
+
+
+
+
+
+
+
+/* remove the outer blue frame */
+.mini-app{
+  border: none !important;
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+.mini-app:focus{ outline: none !important; }
+.mini-app{ box-shadow: none !important; }
+
+
+
+
+
+
+
+/* Mini-app fix pack: no overflow, no scrollbars, tight layout */
+body.fc-mini{
+  margin: 0;
+  background: #06141a !important;
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  overflow: hidden;               /* kill page scroll */
+}
+
+.mini-app{
+  width: 424px;
+  height: 695px;
+  max-width: 100vw;
+  max-height: 100svh;
+  overflow: hidden;               /* kill inner scroll */
+  padding: 0;
+}
+
+/* shrink the huge desktop wrapper only in mini mode */
+.mini-app .game-body{
+  width: 360px !important;
+  height: 620px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+}
+
+/* board column */
+.mini-app .game-display{
+  width: 340px !important;
+  margin: 0 !important;
+  position: relative;
+}
+
+/* stop canvas zoom that forces horizontal scroll */
+.mini-app .canva{
+  transform: none !important;
+  margin-top: 12px !important;
+  display: block;
+}
+
+/* start screen box should not add another frame */
+.mini-app .start-screen{
+  width: 340px !important;
+  left: 0 !important;
+  top: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* HUD pinned at the top of the board */
+.mini-app .form-wrapper{
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  height: auto;
+}
+
+
+
+
+
