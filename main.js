@@ -4,6 +4,8 @@ import { sdk } from '@farcaster/miniapp-sdk'
 // expose for other files if they need it
 window.sdk = sdk
 
+sdk.actions.ready();
+
 // tag the body so CSS can switch to mini layout
 document.body.classList.add('fc-mini')
 
