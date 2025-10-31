@@ -166,6 +166,71 @@ homeTitle.classList.add('home-title')
 homeTitle.innerHTML = "SAND TETRIS"
 startScreen.appendChild(homeTitle)
 
+// ---- Add-to-Favorites prompt (home screen) ----
+const favKey = 'fc_fav_prompt_dismissed_v1';
+
+// show prompt only inside Warpcast / Mini App and only if not dismissed
+const inWarpcast = !!window.sdk; // good enough for our case
+
+const favPrompt = document.createElement('div');
+favPrompt.className = 'fav-prompt';
+favPrompt.innerHTML = `
+  <div class="fav-prompt__row">
+    <img class="fav-prompt__star" src="./images/star.png" alt="">
+    <div class="fav-prompt__text">
+      add this game to your mini apps favorites for 1-tap access inside warpcast
+    </div>
+  </div>
+  <div class="fav-prompt__actions">
+    <button class="fav-btn" data-action="later">later</button>
+    <button class="fav-btn fav-btn--primary" data-action="ok">show me</button>
+  </div>
+`;
+startScreen.appendChild(favPrompt);
+
+// basic behavior: show once after a short delay
+const maybeShowFavPrompt = () => {
+  if (!inWarpcast) return;
+  if (localStorage.getItem(favKey) === '1') return;
+  favPrompt.style.display = 'block';
+};
+
+setTimeout(maybeShowFavPrompt, 900); // small delay after home loads
+
+favPrompt.addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const action = btn.dataset.action;
+
+  if (action === 'later') {
+    favPrompt.style.display = 'none';
+    // do not set dismissed, it can show again on next visit
+  }
+
+  if (action === 'ok') {
+    favPrompt.style.display = 'none';
+    localStorage.setItem(favKey, '1'); // don’t nag again
+
+    // best-effort guidance: some Warpcast builds don’t expose a star API
+    // so we guide the user to tap the star in the top bar menu.
+    // if a native action becomes available, call it here.
+    try {
+      // if a future sdk action exists, it would go here
+      // await sdk.actions.addToFavorites?.();
+      // fallback: small toast-style hint
+      const hint = document.createElement('div');
+      Object.assign(hint.style, {
+        position:'absolute', left:'50%', top:'12px', transform:'translateX(-50%)',
+        background:'rgba(8,16,24,.95)', color:'#cfe8ff', border:'1px solid #347cda',
+        padding:'8px 10px', borderRadius:'10px', zIndex:11, fontFamily:'prStart', fontSize:'12px'
+      });
+      hint.textContent = 'tip: tap the star in warpcast to favorite';
+      startScreen.appendChild(hint);
+      setTimeout(()=> hint.remove(), 1800);
+    } catch {}
+  }
+});
+
         //WELCOME
         const ssDivWelcome = document.createElement('div')
         ssDivWelcome.classList.add('ss-div-welcome')
@@ -190,7 +255,8 @@ ssButtonStart.onclick = () => {
   startScreen.style.display = 'none';
   divLine.style.display = 'flex';
   document.querySelector('.form-wrapper')?.classList.add('active');
-
+  // hide favorites prompt if it’s still visible
+  try { favPrompt.style.display = 'none'; } catch {}
   // reset state first
   this.resetGame();
   this.active = true;
