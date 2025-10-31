@@ -1,0 +1,32 @@
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOjE0MTYwOTEsInR5cGUiOiJjdXN0b2R5Ii2V5IjoiMHhCRGRmYjZhMTBENDdiOUU2OTk0NEE5Mzc3RjQyZDY1NzZBRDQ5YUE1In0",
+    "payload": "eyJkb21haW4iOiJjYW5keWNydXNoLWxpYXJkLnZlbC5hcHAifQ",
+    "signature": "Bc6gzjvCHbb41FQ+/OUwzh05Jy+SOQemqcEMXB6xHbOnmniBAffFzez1mdiRYIrpWqmlwx+73XLr1aNgsKBs="
+  },
+"miniapp": {
+  "version": "1",
+  "name": "Sand Tetris",
+  "subtitle": "Falling Blocks Mini Game",
+  "description": "Classic sand-style Tetris game inside Farcaster Mini App.",
+  "homeUrl": "https://sandblast-smoky.vercel.app",
+  "webhookUrl": "https://sandblast-smoky.vercel.app/api/webhook",
+  "primaryCategory": "games",
+  "tags": ["games", "arcade", "tetris", "base"],
+  "iconUrl": "https://sandblast-smoky.vercel.app/icon.png",
+  "heroImageUrl": "https://sandblast-smoky.vercel.app/og.png",
+  "splashImageUrl": "https://sandblast-smoky.vercel.app/og.png",
+  "splashBackgroundColor": "#000000",
+  "screenshotUrls": [
+    "https://sandblast-smoky.vercel.app/screenshot-portrait.png"
+  ],
+  "ogTitle": "Sand Tetris",
+  "ogDescription": "Play Sand Tetris on Base through Farcaster Mini Apps.",
+  "ogImageUrl": "https://sandblast-smoky.vercel.app/og.png"
+  },
+
+
+  "baseBuilder": {
+    "ownerAddress": "0xD1953dc7195a205B562e3DDdF45293Fa646Bab01"
+  }
+}
